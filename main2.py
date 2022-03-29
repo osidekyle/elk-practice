@@ -13,17 +13,11 @@ import numpy as np
 from elasticsearch import helpers
 
 df = pd.read_csv("netflix_titles.csv")
-print(df.head(5))
 
 es = Elasticsearch([{'host' : 'localhost', 'port' : 9200, 'scheme' : 'http'}])
 
-print(es.ping())
-
-print(df.isna().sum())
 
 df = df.dropna()
-
-print(df.isna().sum())
 
 df2 = df.to_dict('records')
 
@@ -37,12 +31,39 @@ def generator(df2):
                 "title": line.get("title",""),
                 "director": line.get("director", ""),
                 "description": line.get("description", ""),
-                "duration": line.get("duration", None)
+                "duration": line.get("duration", None),
+                "cast": line.get("cast", None)
             }
         }
-        raise StopIteration
+    raise StopIteration
 
-mycustom = generator(df2)
-print(next(mycustom))
+
+Settings = {
+    "settings":{
+        "number_of_shards":1,
+        "number_of_replicas": 0
+    },
+    "mappings":{
+        "properties":{
+            "director":{
+                "type":"text"
+            }, "duration": {
+                "type":"text"
+            }
+        }
+    }
+}
+
+my =es.indices.create(index="myelkfirst", ignore=[400,404], body=Settings)
+
+
+try:
+    res = helpers.bulk(es, generator(df2))
+    print("working")
+except Exception as e:
+    print(e)
+    pass
+
+
 
 
