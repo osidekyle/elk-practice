@@ -25,7 +25,6 @@ def generator(df2):
     for c,line in enumerate(df2):
         yield{
             "_index" : "myelkfirst",
-            "_type" : "_doc",
             "_id" : line.get("show_id", None),
             "_source" : {
                 "title": line.get("title",""),
@@ -35,27 +34,26 @@ def generator(df2):
                 "cast": line.get("cast", None)
             }
         }
-    raise StopIteration
+  
 
 
-Settings = {
-    "settings":{
-        "number_of_shards":1,
-        "number_of_replicas": 0
-    },
-    "mappings":{
-        "properties":{
-            "director":{
-                "type":"text"
-            }, "duration": {
-                "type":"text"
-            }
-        }
-    }
-}
+# Settings = {
+#     "settings":{
+#         "number_of_shards":1,
+#         "number_of_replicas": 0
+#     },
+#     "mappings":{
+#         "properties":{
+#             "director":{
+#                 "type":"text"
+#             }, "duration": {
+#                 "type":"text"
+#             }
+#         }
+#     }
+# }
 
-my =es.indices.create(index="myelkfirst", ignore=[400,404], body=Settings)
-
+my = es.indices.create(index="myelkfirst", ignore=[400,404])
 
 try:
     res = helpers.bulk(es, generator(df2))
@@ -63,6 +61,7 @@ try:
 except Exception as e:
     print(e)
     pass
+
 
 
 
